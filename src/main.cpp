@@ -202,29 +202,21 @@ enum state
 void setup() 
 {
   Serial.begin(9600);
-  pinMode(A5, INPUT);
 }
 
 void loop() 
 {
-  if (analogRead(A5) > 950)
-  {
-    motorA.setSpeed(100, true);
-    motorB.setSpeed(100);
-  }
-  else
-  {
-    if (analogRead(A5)< 50)
-    {
-      motorA.setSpeed(100);
-      motorB.setSpeed(100, true);
-    }
-    else
-    {
-      motorA.setSpeed(50);
-      motorB.setSpeed(map(analogRead(A5), 0, 1023, 0, 255));
-    }
-  }
-  Serial.println(analogRead(A5));
+  motorA.setSpeed(100);
+  motorB.setSpeed(100);
+
+  delay(1000);
   
+  motorA.setSpeed(100, true);
+  motorB.setSpeed(100, true);
+  delay(1000);
+  
+  motorA.setSpeed(0);
+  motorB.setSpeed(0);
+  delay(1000);
+
 }
