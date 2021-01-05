@@ -69,8 +69,12 @@
 #define Led4B 38
 
 //Knopje
-#define But1S = 21
-#define But1L = 20
+#define But1S 21
+#define But1L 20
+
+//Encoders
+#define EncoderA 18
+#define EncoderB 19
 
 struct RGBColor
 {
@@ -187,44 +191,113 @@ Motor::~Motor()
 {
 }
 
+class sensor
+{
+private:
+  int activatingPin,
+      dataPin,
+      sensorValue;
+public:
+  sensor(int ActivatingPin, int DataPin);
+  ~sensor();
+
+  void enable()
+  {
+    digitalWrite(activatingPin, HIGH);
+  }  
+  
+  void disable()
+  {
+    digitalWrite(activatingPin, LOW);
+  }
+
+  int getValue()
+  {
+    sensorValue = analogRead(dataPin);
+    return sensorValue;
+  }
+};
+
+sensor::sensor(int ActivatingPin, int DataPin)
+{
+  activatingPin = ActivatingPin;
+  dataPin = DataPin;
+
+  pinMode(activatingPin, OUTPUT);
+};
+
+sensor::~sensor()
+{
+};
+
 
 Motor motorA(PwmA, DirA, CurA, BrkA, true);
 Motor motorB(PwmB, DirB, CurB, BrkB, false);
 
+sensor readingHead(Sen4P, Sen4A);
 enum state
 {
-  LINE,
+  LINEFOLLOWING,
   PAUSE,
   START,
-  STOP
+  STOP,
+  ERROR
 };
+
+int readMode()
+{
+  while (true)
+    {
+      if (!digitalRead(Sen1D) && !digitalRead(Sen2D) && !digitalRead(Sen6D) && !digitalRead(Sen7D))
+      {
+      }
+      if (digitalRead(Sen1D) && !digitalRead(Sen2D) && !digitalRead(Sen6D) && digitalRead(Sen7D))
+      {
+        return 1;
+      }
+    }
+}
+
+int enableSensors()
+{
+  readingHead.enable();
+}
 
 void setup() 
 {
   Serial.begin(9600);
-  pinMode(A5, INPUT);
+  
+  enableSensors();
 }
 
 void loop() 
 {
-  if (analogRead(A5) > 950)
+  if (digitalRead(Sen1D) && digitalRead(Sen2D) && digitalRead(Sen6D) && digitalRead(Sen7D))
   {
-    motorA.setSpeed(100, true);
-    motorB.setSpeed(100);
+         
+  }
+  
+
+  if (readingHead.getValue() > 600)
+  {
+    motorA.setSpeed(0);
+    motorB.setSpeed(255, true);
+    delay(90);
   }
   else
   {
-    if (analogRead(A5)< 50)
+    if (readingHead.getValue()< 40)
     {
-      motorA.setSpeed(100);
-      motorB.setSpeed(100, true);
+      motorA.setSpeed(255, true);
+      motorB.setSpeed(0);
+      delay(90);
     }
     else
     {
-      motorA.setSpeed(50);
-      motorB.setSpeed(map(analogRead(A5), 0, 1023, 0, 255));
+      motorA.setSpeed(75);
+      motorB.setSpeed(75);
     }
   }
-  Serial.println(analogRead(A5));
+  Serial.println(readingHead.getValue());
   
 }
